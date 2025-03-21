@@ -1,0 +1,23 @@
+[project]
+name = "ansi_stdio"
+description = "ANSI text animation library"
+version = "0.0.1"
+authors = [
+    { name = "Gareth Davidson", email = "gaz@bitplane.net" }
+]
+dependencies = [
+    "rich"
+]
+
+[project.optional-dependencies]
+dev = [
+    "flake8",
+    "pre-commit",
+    "pytest",
+    "coverage",
+    "pytest-cov"
+]
+
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.2,<4"]
