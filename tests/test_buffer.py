@@ -1,6 +1,6 @@
 from rich.segment import Segment
 
-from ansi_stdio.buffer import Buffer
+from ansi_stdio.buffer.buffer import Buffer
 
 
 def test_create_buffer():

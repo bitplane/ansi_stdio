@@ -6,7 +6,8 @@ authors = [
     { name = "Gareth Davidson", email = "gaz@bitplane.net" }
 ]
 dependencies = [
-    "rich"
+    "rich",
+    "pyte"
 ]
 
 [project.optional-dependencies]

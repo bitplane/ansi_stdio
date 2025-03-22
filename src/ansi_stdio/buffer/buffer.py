@@ -1,6 +1,6 @@
 from rich.segment import Segment
 
-from .bounds import Bounds
+from ..bounds import Bounds
 
 
 class Buffer:
