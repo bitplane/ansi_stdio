@@ -72,11 +72,12 @@ class Clock:
     def resume(self):
         """
         Resume the clock, continuing from where it was paused.
-        Adjusts the skew to account for time passed while paused.
+        Adjusts the skew to maintain the exact time where it was paused.
         """
         if not self.paused:
             return
-        self.skew += self.paused_at - self.parent_time
+
+        self.skew = self.paused_at - self.parent_time
         self.paused = False
         self.paused_at = None
 

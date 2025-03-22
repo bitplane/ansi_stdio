@@ -174,7 +174,7 @@ def test_multiple_pause_resume_cycles():
         # First pause/resume cycle
         clock.pause()
         mock_time.return_value = 120.0
-        clock.resume()  # Should add skew of -20
+        clock.resume()  # Sets skew directly, not adding to previous
 
         assert clock.skew == -20.0
         assert clock.time == 100.0
@@ -186,15 +186,15 @@ def test_multiple_pause_resume_cycles():
         # Second pause/resume cycle
         clock.pause()
         mock_time.return_value = 150.0
-        clock.resume()  # Should adjust skew by (110 - 150) = -40
+        clock.resume()  # Sets skew directly, not adding to previous
 
-        # Total skew should be -20 + (-40) = -60 now
-        assert clock.skew == -60.0
-        assert clock.time == 90.0  # 150 + (-60)
+        # Skew is set directly to maintain paused time (not cumulative)
+        assert clock.skew == -40.0  # 110.0 - 150.0
+        assert clock.time == 110.0  # Time continues exactly from where we paused
 
         # Time continues from there
         mock_time.return_value = 180.0
-        assert clock.time == 120.0  # 180 + (-60)
+        assert clock.time == 140.0  # 180 + (-40)
 
 
 def test_real_time_behavior():
