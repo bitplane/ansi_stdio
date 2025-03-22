@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 A simple test for pyte terminal emulation.
-Captures and displays program output using the pyte_renderer module.
+Captures and displays program output using the capture_terminal function.
 
 Usage:
     ./test.py [--program PROGRAM] [--width WIDTH] [--height HEIGHT]
@@ -12,14 +12,10 @@ Examples:
 """
 
 import argparse
-import errno
-import os
-import subprocess
-import time
 
-import pyte
-
-from ansi_stdio.buffer.pyte_renderer import display_dirty_lines, display_screen
+from ansi_stdio.terminal.capture import capture_terminal
+from ansi_stdio.terminal.info import get_terminal_size
+from ansi_stdio.terminal.render import display_dirty_lines, display_screen
 
 
 def parse_arguments():
@@ -34,10 +30,16 @@ def parse_arguments():
         required=True,
     )
     parser.add_argument(
-        "--width", type=int, default=80, help="Width of the terminal (default: 80)"
+        "--width",
+        type=int,
+        default=None,
+        help="Width of the terminal (default: detected)",
     )
     parser.add_argument(
-        "--height", type=int, default=24, help="Height of the terminal (default: 24)"
+        "--height",
+        type=int,
+        default=None,
+        help="Height of the terminal (default: detected)",
     )
     parser.add_argument(
         "--delta",
@@ -53,34 +55,15 @@ def main():
     """
     args = parse_arguments()
 
+    # Use get_terminal_size to detect terminal dimensions if not specified
     terminal_width = args.width
     terminal_height = args.height
 
-    # Override with terminal size if available and no custom size was specified
-    if not args.width or not args.height:
-        try:
-            # Try to get size using stty
-            size_output = (
-                subprocess.check_output(["stty", "size"]).decode().strip().split()
-            )
-            term_height, term_width = map(int, size_output)
-
-            # Only use detected size if user didn't specify
-            if not args.width:
-                terminal_width = term_width
-            if not args.height:
-                terminal_height = term_height
-
-        except (subprocess.SubprocessError, FileNotFoundError):
-            # Fall back to defaults if that fails
-            pass
-
-    # Create a pyte screen and stream with the determined dimensions
-    screen = pyte.Screen(terminal_width, terminal_height)
-    stream = pyte.Stream(screen)
-
-    # Configure screen options for better compatibility
-    screen.set_mode(pyte.modes.LNM)  # Line feed/new line mode
+    if terminal_width is None or terminal_height is None:
+        # Detect terminal size and use detected values for unspecified dimensions
+        detected_width, detected_height = get_terminal_size()
+        terminal_width = args.width or detected_width
+        terminal_height = args.height or detected_height
 
     # Clear the screen
     print("\033[H\033[J", end="", flush=True)
@@ -88,102 +71,19 @@ def main():
     print(f"Running program: {args.program}")
     print(f"Using {'delta' if args.delta else 'full'} screen updates")
 
-    # Run the specified program
+    # Capture terminal output
+    capture_display_callback = display_dirty_lines if args.delta else display_screen
+
     try:
-        # Use pty to create a pseudo-terminal
-        import fcntl
-        import pty
-        import struct
-        import termios
-
-        # Create a master/slave pty pair
-        master_fd, slave_fd = pty.openpty()
-
-        # Set the terminal size on the pty
-        term_size = struct.pack("HHHH", terminal_height, terminal_width, 0, 0)
-        fcntl.ioctl(slave_fd, termios.TIOCSWINSZ, term_size)
-
-        # Set environment variables to match the terminal size
-        env = os.environ.copy()
-        env["TERM"] = "xterm-256color"  # Good compatibility
-        env["COLUMNS"] = str(terminal_width)
-        env["LINES"] = str(terminal_height)
-
-        # Split the command and args properly, handling quoted arguments
-        if " " in args.program:
-            import shlex
-
-            cmd_parts = shlex.split(args.program)
-        else:
-            cmd_parts = args.program.split()
-
-        # Start the process connected to our pty
-        process = subprocess.Popen(
-            cmd_parts,
-            stdin=slave_fd,
-            stdout=slave_fd,
-            stderr=slave_fd,
-            env=env,
-            start_new_session=True,
-            close_fds=True,
+        capture_terminal(
+            program=args.program,
+            width=terminal_width,
+            height=terminal_height,
+            display_callback=capture_display_callback,
         )
-
-        # Close the slave side - it's now managed by the child process
-        os.close(slave_fd)
-
-        # Make master non-blocking for reading
-        fl = fcntl.fcntl(master_fd, fcntl.F_GETFL)
-        fcntl.fcntl(master_fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-
-        # Read loop
-        while process.poll() is None:  # While process is running
-            try:
-                data = os.read(master_fd, 4096)
-                if data:
-                    text_data = data.decode("utf-8", errors="replace")
-                    stream.feed(text_data)
-
-                    # Display using either full screen or delta updates
-                    if args.delta:
-                        display_dirty_lines(screen)
-                    else:
-                        display_screen(screen)
-                else:
-                    time.sleep(0.01)  # Short sleep to prevent CPU hogging
-            except (IOError, OSError) as e:
-                if e.errno != errno.EAGAIN:  # Not "resource temporarily unavailable"
-                    raise
-                time.sleep(0.01)  # No data ready, short sleep
-
-        # Process exited, read any remaining output
-        try:
-            while True:
-                data = os.read(master_fd, 4096)
-                if not data:
-                    break
-                text_data = data.decode("utf-8", errors="replace")
-                stream.feed(text_data)
-
-                # Display the final state
-                if args.delta:
-                    display_dirty_lines(screen)
-                else:
-                    display_screen(screen)
-        except (IOError, OSError):
-            pass
-
-        # Clean up
-        os.close(master_fd)
-
-    except (KeyboardInterrupt, ImportError, OSError) as e:
-        if isinstance(e, ImportError):
-            print(f"Error: pty module not available - {e}")
-        elif isinstance(e, OSError):
-            print(f"\nError running program: {e}")
-        else:
-            print("\nProgram terminated")
-
-    print("Done!")
+        print("Done!")
+    except Exception as e:
+        print(f"\nError running program: {e}")
 
 
 if __name__ == "__main__":
