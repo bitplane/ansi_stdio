@@ -34,20 +34,10 @@ def test_bounds():
     buffer = Buffer()
     buffer[-1, 5] = Segment("hello")
 
-    assert buffer.bounds == (-1, 5, 4, 6)
+    assert buffer.bounds.min_x == -1
+    assert buffer.bounds.min_y == 5
+    assert buffer.bounds.max_x == 4
+    assert buffer.bounds.max_y == 6
 
-
-def test_width():
-    buffer = Buffer()
-    buffer[50, 50] = Segment("bleh")
-    buffer[100, 100] = Segment("bleh")
-
-    assert buffer.width == 54
-
-
-def test_height():
-    buffer = Buffer()
-    buffer[-10, 10] = Segment(".")
-    buffer[-2, 20] = Segment(".")
-
-    assert buffer.height == 11
+    assert buffer.bounds.width == 5
+    assert buffer.bounds.height == 1
