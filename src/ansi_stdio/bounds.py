@@ -42,6 +42,12 @@ class Bounds:
         """
         return (self.min_x != self.max_x) or (self.min_y != self.max_y)
 
+    def __len__(self):
+        """
+        Return the area of the bounds.
+        """
+        return self.width * self.height
+
     def update(self, x, y):
         """
         Update the bounds to include the given coordinates.

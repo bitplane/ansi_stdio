@@ -138,39 +138,13 @@ def format_line(row, width):
     return "".join(line)
 
 
-def render_screen(screen):
+def render_screen(screen, dirty_only=False, clear_dirty=True):
     """
-    Convert a pyte screen to a list of formatted strings.
+    Convert a pyte screen to a dictionary of formatted strings.
 
     Args:
         screen: A pyte.Screen instance
-
-    Returns:
-        list: A list of strings containing ANSI-formatted text, one per line
-    """
-    width = screen.columns
-    height = screen.lines
-
-    # List to hold formatted lines
-    formatted_lines = []
-
-    # Build the screen line by line
-    for y in range(height):
-        if y in screen.buffer:
-            formatted_lines.append(format_line(screen.buffer[y], width))
-        else:
-            # Empty line
-            formatted_lines.append(" " * width)
-
-    return formatted_lines
-
-
-def render_dirty_lines(screen, clear_dirty=True):
-    """
-    Convert only dirty lines of a pyte screen to formatted strings.
-
-    Args:
-        screen: A pyte.Screen instance
+        dirty_only: If True, only render dirty lines
         clear_dirty: Whether to clear the dirty set after processing
 
     Returns:
@@ -178,51 +152,44 @@ def render_dirty_lines(screen, clear_dirty=True):
     """
     width = screen.columns
 
-    # Dictionary to hold dirty lines
-    dirty_lines = {}
+    # Dictionary to hold formatted lines
+    formatted_lines = {}
 
-    # Process only dirty lines
-    for y in screen.dirty:
+    # Determine which lines to process
+    lines_to_process = screen.dirty if dirty_only else range(screen.lines)
+
+    # Build the screen line by line
+    for y in lines_to_process:
         if y in screen.buffer:
-            dirty_lines[y] = format_line(screen.buffer[y], width)
+            formatted_lines[y] = format_line(screen.buffer[y], width)
+        else:
+            # Empty line
+            formatted_lines[y] = " " * width
 
     # Clear the dirty set if requested
     if clear_dirty:
         screen.dirty.clear()
 
-    return dirty_lines
+    return formatted_lines
 
 
-def display_screen(screen):
+def display_screen(screen, dirty_only=False, clear_dirty=True):
     """
     Display a pyte screen using ANSI escape sequences.
 
     Args:
         screen: A pyte.Screen instance
-    """
-    # Start fresh - move to home position and clear screen
-    print("\033[H\033[J", end="", flush=True)
-
-    # Get formatted lines
-    formatted_lines = render_screen(screen)
-
-    # Print each line
-    for line in formatted_lines:
-        print(line, end="\r\n", flush=True)
-
-
-def display_dirty_lines(screen, clear_dirty=True):
-    """
-    Display only the dirty lines of a pyte screen.
-
-    Args:
-        screen: A pyte.Screen instance
+        dirty_only: If True, only display dirty lines
         clear_dirty: Whether to clear the dirty set after processing
     """
-    # Get formatted dirty lines
-    dirty_lines = render_dirty_lines(screen, clear_dirty)
+    # Get formatted lines
+    formatted_lines = render_screen(screen, dirty_only, clear_dirty)
 
-    # Print each dirty line with proper cursor positioning
-    for y, line in dirty_lines.items():
+    if not dirty_only:
+        # Start fresh - move to home position and clear screen
+        print("\033[H\033[J", end="", flush=True)
+
+    # Print each line with proper cursor positioning
+    for y, line in formatted_lines.items():
         # Position cursor at the start of the line
         print(f"\033[{y+1};1H{line}", end="", flush=True)

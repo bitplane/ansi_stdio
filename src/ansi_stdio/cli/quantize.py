@@ -16,7 +16,7 @@ from typing import Optional
 
 from ansi_stdio.terminal.capture import capture_terminal
 from ansi_stdio.terminal.info import get_terminal_size
-from ansi_stdio.terminal.render import display_dirty_lines
+from ansi_stdio.terminal.render import display_screen
 
 
 def parse_arguments():
@@ -77,7 +77,7 @@ def quantize_output(
 
         # Only dump if enough time has passed since last dump
         if current_time - last_dump_time >= frame_interval:
-            display_dirty_lines(screen)
+            display_screen(screen, dirty_only=True)
             last_dump_time = current_time
 
     # Capture terminal output with quantized display
