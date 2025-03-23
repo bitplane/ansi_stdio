@@ -360,3 +360,44 @@ def test_set_time_on_child_clock():
 
         # Child follows with its own skew
         assert child.time == 160.0  # 130 + 30
+
+
+def test_double_pause():
+    """Test pausing a clock multiple times."""
+    with patch("ansi_stdio.clock.time") as mock_time:
+        mock_time.return_value = 100.0
+
+        clock = Clock()
+
+        # Initial pause
+        clock.pause()
+        assert clock.paused
+        assert clock.paused_at == 100.0
+
+        # Second pause
+        clock.pause()
+        assert clock.paused
+        assert clock.paused_at == 100.0
+
+
+def test_double_resume():
+    """Test resuming a clock multiple times."""
+    with patch("ansi_stdio.clock.time") as mock_time:
+        mock_time.return_value = 100.0
+
+        clock = Clock()
+
+        # Initial pause
+        clock.pause()
+        assert clock.paused
+        assert clock.paused_at == 100.0
+
+        # Resume
+        clock.resume()
+        assert not clock.paused
+        assert clock.paused_at is None
+
+        # Second resume
+        clock.resume()
+        assert not clock.paused
+        assert clock.paused_at is None
