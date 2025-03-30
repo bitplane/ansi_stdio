@@ -12,7 +12,7 @@ class Buffer:
         """
         Initialize the buffer as a sparse structure.
         """
-        self.data = {}  # {y: {x: segment}}
+        self._data = {}  # {y: {x: segment}}
         self.bounds = Bounds()
         self._size = 0
 
@@ -27,7 +27,7 @@ class Buffer:
             The Segment at those coordinates or None if empty
         """
         x, y = coords
-        return self.data.get(y, {}).get(x)
+        return self._data.get(y, {}).get(x)
 
     def __setitem__(self, coords, segment):
         """
@@ -51,13 +51,13 @@ class Buffer:
         self.bounds += other.bounds
 
         # Merge the data from the other buffer
-        for y, row in other.data.items():
-            if y not in self.data:
+        for y, row in other._data.items():
+            if y not in self._data:
                 # Fast path: copy entire row if it doesn't exist in current buffer
-                self.data[y] = row.copy()
+                self._data[y] = row.copy()
             else:
                 # Update existing row
-                self.data[y].update(row)
+                self._data[y].update(row)
 
         self.recalculate(bounds=False)
 
@@ -78,7 +78,7 @@ class Buffer:
         """
         result = Buffer()
         for y in range(bounds.min_y, bounds.max_y):
-            row = self.data.get(y)
+            row = self._data.get(y)
             if not row:
                 continue
             for x in range(bounds.min_x, bounds.max_x):
@@ -91,7 +91,7 @@ class Buffer:
         Crop the buffer to the given bounds.
         This modifies the buffer in place.
         """
-        self.data = (self & bounds).data
+        self._data = (self & bounds)._data
         self.bounds = bounds
         self.recalculate(bounds=False)
 
@@ -120,16 +120,16 @@ class Buffer:
             self.bounds.update(x - 1 + txtlen, y)
 
         # Ensure y entry exists before loop
-        if not self.data.get(y):
-            self.data[y] = {}
+        if not self._data.get(y):
+            self._data[y] = {}
 
         # Handle multi-character segments by writing each char
         style = segment.style
         for i, char in enumerate(segment.text):
-            if x + i not in self.data[y]:
+            if x + i not in self._data[y]:
                 self._size += 1
             # Store a new single-character segment
-            self.data[y][x + i] = Segment(char, style)
+            self._data[y][x + i] = Segment(char, style)
 
     def copy(self):
         """
@@ -146,8 +146,8 @@ class Buffer:
         )
 
         # Copy the data structure
-        for y, row in self.data.items():
-            new_buffer.data[y] = row.copy()
+        for y, row in self._data.items():
+            new_buffer._data[y] = row.copy()
 
         return new_buffer
 
@@ -156,10 +156,10 @@ class Buffer:
         Recalculate the size and bounds
         """
         if size:
-            self._size = sum(len(row) for row in self.data.values())
+            self._size = sum(len(row) for row in self._data.values())
 
         if bounds:
             self.bounds.reset()
-            for y, row in self.data.items():
+            for y, row in self._data.items():
                 for x in row:
                     self.bounds.update(x, y)

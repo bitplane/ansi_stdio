@@ -1,3 +1,4 @@
+import pytest
 from rich.segment import Segment
 
 from ansi_stdio.bounds import Bounds
@@ -132,10 +133,43 @@ def test_recalculate_size_and_bounds():
     buf[1, 2] = Segment("Y")
 
     # Break it manually
-    buf.data[10] = {20: Segment("!" * 3)}  # Should add 3
+    buf._data[10] = {i: Segment("!") for i in range(20, 23)}
 
     buf.recalculate()
 
     assert buf.bounds.contains(1, 2)
     assert buf.bounds.contains(20, 10)
     assert len(buf) == 1 + 1 + 3  # 2 originals + 3 new chars
+
+
+def test_buffer_iadd_fast_path_copy():
+    src = Buffer()
+    src[0, 0] = Segment("A")
+    src[1, 0] = Segment("B")
+
+    dst = Buffer()
+    dst += src
+
+    # The row should be copied wholesale
+    assert 0 in dst._data
+    assert dst[0, 0].text == "A"
+    assert dst[1, 0].text == "B"
+
+    # Should not share row object (deep copy)
+    assert dst._data[0] is not src._data[0]
+
+
+def test_buffer_iadd_type_error():
+    buf = Buffer()
+
+    with pytest.raises(TypeError):
+        buf += "not a buffer"
+
+    with pytest.raises(TypeError):
+        buf += 123
+
+    class Fake:
+        pass
+
+    with pytest.raises(TypeError):
+        buf += Fake()
