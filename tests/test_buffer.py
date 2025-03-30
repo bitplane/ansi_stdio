@@ -173,3 +173,81 @@ def test_buffer_iadd_type_error():
 
     with pytest.raises(TypeError):
         buf += Fake()
+
+
+def test_buffer_iadd_merge_existing_row():
+    a = Buffer()
+    a[1, 1] = Segment("A")
+
+    b = Buffer()
+    b[2, 1] = Segment("B")  # same row (y=1), different x
+
+    a += b
+    assert a[1, 1].text == "A"
+    assert a[2, 1].text == "B"
+
+
+def test_buffer_sub_basic_diff():
+    a = Buffer()
+    b = Buffer()
+
+    a[1, 1] = Segment("A")
+    a[2, 1] = Segment("B")
+
+    b[1, 1] = Segment("A")  # Same at (1,1), different at (2,1)
+
+    diff = a - b
+
+    assert diff[1, 1] is None
+    assert diff[2, 1].text == "B"
+    assert len(diff) == 1
+
+
+def test_buffer_sub_all_same_is_empty():
+    a = Buffer()
+    b = Buffer()
+
+    a[0, 0] = Segment("X")
+    b[0, 0] = Segment("X")
+
+    diff = a - b
+    assert len(diff) == 0
+    assert not diff._data  # Internal data should be empty
+
+
+def test_buffer_sub_extra_in_b():
+    a = Buffer()
+    b = Buffer()
+
+    b[0, 0] = Segment("Z")  # Only in b
+
+    diff = a - b
+    assert len(diff) == 0
+    assert diff[0, 0] is None
+
+
+def test_buffer_isub_in_place_removal():
+    a = Buffer()
+    b = Buffer()
+
+    a[1, 1] = Segment("A")
+    a[2, 1] = Segment("B")
+    b[1, 1] = Segment("A")  # same
+
+    a -= b
+    assert a[1, 1] is None
+    assert a[2, 1].text == "B"
+    assert len(a) == 1
+
+
+def test_buffer_isub_removes_empty_rows():
+    a = Buffer()
+    b = Buffer()
+
+    a[1, 1] = Segment("A")
+    b[1, 1] = Segment("A")
+
+    assert 1 in a._data
+    a -= b
+    assert 1 not in a._data
+    assert len(a) == 0
