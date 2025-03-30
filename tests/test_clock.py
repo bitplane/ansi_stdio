@@ -1,7 +1,7 @@
 from time import sleep
 from unittest.mock import patch
 
-from ansi_stdio.clock import Clock
+from ansi_stdio.core.clock import Clock
 
 
 def test_clock_init():
@@ -23,7 +23,7 @@ def test_clock_with_parent():
 def test_clock_time_property():
     """Test the time property returns current time with skew."""
     # Using patch to control time.time() output
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         clock = Clock()
@@ -37,7 +37,7 @@ def test_clock_time_property():
 def test_clock_parent_time_property():
     """Test the parent_time property."""
     # Create parent with fixed time
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         parent = Clock()
@@ -52,7 +52,7 @@ def test_clock_parent_time_property():
 
 def test_clock_time_setter():
     """Test setting the time adjusts the skew appropriately."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         clock = Clock()
@@ -71,7 +71,7 @@ def test_clock_time_setter():
 
 def test_parent_child_relationship():
     """Test time flows from parent to child with appropriate skews."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         parent = Clock()
@@ -93,7 +93,7 @@ def test_parent_child_relationship():
 
 def test_clock_pause():
     """Test pausing a clock freezes its time."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         clock = Clock()
@@ -109,7 +109,7 @@ def test_clock_pause():
 
 def test_clock_resume():
     """Test resuming a clock with the correct skew adjustment."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         # Start at t=100
         mock_time.return_value = 100.0
 
@@ -136,7 +136,7 @@ def test_clock_resume():
 
 def test_nested_pause_resume():
     """Test pausing and resuming with nested clocks."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         parent = Clock()
@@ -166,7 +166,7 @@ def test_nested_pause_resume():
 
 def test_multiple_pause_resume_cycles():
     """Test multiple pause/resume cycles maintain correct time."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         clock = Clock()
@@ -237,7 +237,7 @@ def test_real_time_behavior():
 
 def test_set_time_while_paused():
     """Test setting time while a clock is paused."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         clock = Clock()
@@ -269,7 +269,7 @@ def test_set_time_while_paused():
 
 def test_child_with_paused_parent():
     """Test behavior of child clock when parent is paused."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         parent = Clock()
@@ -297,7 +297,7 @@ def test_child_with_paused_parent():
 
 def test_change_parent():
     """Test changing a clock's parent."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         parent1 = Clock()
@@ -327,7 +327,7 @@ def test_change_parent():
 
 def test_set_time_on_child_clock():
     """Test setting time on a child clock."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         parent = Clock()
@@ -364,7 +364,7 @@ def test_set_time_on_child_clock():
 
 def test_double_pause():
     """Test pausing a clock multiple times."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         clock = Clock()
@@ -382,7 +382,7 @@ def test_double_pause():
 
 def test_double_resume():
     """Test resuming a clock multiple times."""
-    with patch("ansi_stdio.clock.time") as mock_time:
+    with patch("ansi_stdio.core.clock.time") as mock_time:
         mock_time.return_value = 100.0
 
         clock = Clock()

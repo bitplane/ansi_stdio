@@ -1,6 +1,6 @@
 import pytest
 
-from ansi_stdio.bounds import Bounds
+from ansi_stdio.core.bounds import Bounds
 
 
 def test_create_bounds():

@@ -1,6 +1,6 @@
 from rich.segment import Segment
 
-from ..bounds import Bounds
+from ..core.bounds import Bounds
 
 
 class Buffer:
@@ -95,6 +95,34 @@ class Buffer:
         self.bounds = bounds
         self.recalculate(bounds=False)
 
+        return self
+
+    def __sub__(self, other: "Buffer") -> "Buffer":
+        """
+        Create a new buffer representing the difference: self - other.
+        Only includes cells in self that differ from other.
+        """
+        delta = Buffer()
+        for y, row in self._data.items():
+            for x, seg in row.items():
+                if seg != other[x, y]:
+                    delta.set(x, y, seg)
+        return delta
+
+    def __isub__(self, other: "Buffer") -> "Buffer":
+        """
+        Remove from self any cells that are identical in other.
+        Modifies the buffer in-place.
+        """
+        for y in list(self._data.keys()):
+            row = self._data[y]
+            for x in list(row.keys()):
+                if self[x, y] == other[x, y]:
+                    del row[x]
+            if not row:
+                del self._data[y]
+
+        self.recalculate()
         return self
 
     def __len__(self):

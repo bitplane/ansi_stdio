@@ -1,8 +1,8 @@
 import pytest
 from rich.segment import Segment
 
-from ansi_stdio.bounds import Bounds
 from ansi_stdio.buffer.buffer import Buffer
+from ansi_stdio.core.bounds import Bounds
 
 
 def test_create_buffer():
