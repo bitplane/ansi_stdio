@@ -11,7 +11,10 @@ class Versioned:
         self._version = 0
         self._lock = threading.RLock()
 
-    def mark_dirty(self):
+    def change(self):
+        """
+        Call this if you changed something and need to blow caches
+        """
         with self._lock:
             self._version += 1
 
