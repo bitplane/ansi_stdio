@@ -40,15 +40,9 @@ class Buffer:
         x, y = coords
         self.set(x, y, segment)
 
-    def __iadd__(self, other):
+    def __iadd__(self, other) -> "Buffer":
         """
         Merge another buffer into this one.
-
-        Args:
-            other: Another Buffer object to merge into this one
-
-        Returns:
-            Self, for chaining operations
         """
         if not isinstance(other, Buffer):
             raise TypeError(f"Cannot merge {type(other)} with Buffer")
@@ -69,23 +63,43 @@ class Buffer:
 
         return self
 
-    def __add__(self, other):
+    def __add__(self, other) -> "Buffer":
         """
         Create a new buffer by merging this buffer with another.
-
-        Args:
-            other: Another Buffer object to merge with
-
-        Returns:
-            A new Buffer containing the merged content
         """
         result = self.copy()
         result += other
         return result
 
+    def __and__(self, bounds: Bounds) -> "Buffer":
+        """
+        Crop the buffer to the given bounds.
+        Returns a newly allocated buffer.
+        """
+        result = Buffer()
+        for y in range(bounds.min_y, bounds.max_y):
+            row = self.data.get(y)
+            if not row:
+                continue
+            for x in range(bounds.min_x, bounds.max_x):
+                if x in row:
+                    result.set(x, y, row[x])
+        return result
+
+    def __iand__(self, bounds: Bounds) -> "Buffer":
+        """
+        Crop the buffer to the given bounds.
+        This modifies the buffer in place.
+        """
+        self.data = (self & bounds).data
+        self.bounds = bounds
+        self.recalculate(bounds=False)
+
+        return self
+
     def __len__(self):
         """
-        Get the number of segments in the buffer.
+        Get the number of cells set in the buffer.
         """
         return self._size
 
@@ -137,8 +151,15 @@ class Buffer:
 
         return new_buffer
 
-    def compute_size(self):
+    def recalculate(self, size: bool = True, bounds: bool = True):
         """
-        Recalculate the size of the buffer.
+        Recalculate the size and bounds
         """
-        self._size = sum(len(row) for row in self.data.values())
+        if size:
+            self._size = sum(len(row) for row in self.data.values())
+
+        if bounds:
+            self.bounds.reset()
+            for y, row in self.data.items():
+                for x in row:
+                    self.bounds.update(x, y)

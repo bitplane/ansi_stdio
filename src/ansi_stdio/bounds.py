@@ -9,8 +9,9 @@ class Bounds:
         """
         self.min_x = min_x
         self.min_y = min_y
-        self.max_x = max_x
-        self.max_y = max_y
+        # make sure it's not inside out
+        self.max_x = max(min_x, max_x)
+        self.max_y = max(min_y, max_y)
 
     def reset(self):
         """
@@ -36,6 +37,29 @@ class Bounds:
             max_y=max(self.max_y, other.max_y),
         )
 
+    def __and__(self, other: "Bounds") -> "Bounds":
+        """
+        Intersect two bounds to find the overlapping area.
+        """
+        if not self or not other:
+            return Bounds()
+
+        return Bounds(
+            max(self.min_x, other.min_x),
+            max(self.min_y, other.min_y),
+            min(self.max_x, other.max_x),
+            min(self.max_y, other.max_y),
+        )
+
+    def __iand__(self, other: "Bounds") -> "Bounds":
+        """
+        Crop the bounds to the overlapping area.
+        """
+        result = self & other
+        self.min_x, self.min_y = result.min_x, result.min_y
+        self.max_x, self.max_y = result.max_x, result.max_y
+        return self
+
     def __bool__(self):
         """
         True if the bounds have a non-zero area.
@@ -47,6 +71,39 @@ class Bounds:
         Return the area of the bounds.
         """
         return self.width * self.height
+
+    def __contains__(self, item):
+        """
+        Check if the given item is contained within the bounds.
+        """
+        if isinstance(item, tuple) and len(item) == 2:
+            return self.contains(x=item[0], y=item[1])
+
+        if isinstance(item, Bounds):
+            if not item:
+                # The empty set is a subset of everything
+                return True
+            return (
+                self.min_x <= item.min_x
+                and item.max_x <= self.max_x
+                and self.min_y <= item.min_y
+                and item.max_y <= self.max_y
+            )
+
+        if hasattr(item, "bounds"):
+            return item.bounds in self
+
+        raise TypeError(f"Cannot check containment for {type(item)}")
+
+    def __eq__(self, other):
+        if not isinstance(other, Bounds):
+            return NotImplemented
+        return (
+            self.min_x == other.min_x
+            and self.min_y == other.min_y
+            and self.max_x == other.max_x
+            and self.max_y == other.max_y
+        )
 
     def update(self, x, y):
         """
@@ -60,6 +117,18 @@ class Bounds:
             self.min_y = min(self.min_y, y)
             self.max_x = max(self.max_x, x + 1)
             self.max_y = max(self.max_y, y + 1)
+
+    def contains(self, x=None, y=None):
+        """
+        Check if the given coordinates are within the bounds.
+        If x or y is None, it will not be checked.
+        """
+        if x is not None and not (self.min_x <= x < self.max_x):
+            return False
+        if y is not None and not (self.min_y <= y < self.max_y):
+            return False
+
+        return True
 
     @property
     def width(self):
