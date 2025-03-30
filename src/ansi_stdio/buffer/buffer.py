@@ -59,7 +59,7 @@ class Buffer:
                 # Update existing row
                 self.data[y].update(row)
 
-        self.compute_size()
+        self.recalculate(bounds=False)
 
         return self
 
