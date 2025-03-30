@@ -1,9 +1,10 @@
 from rich.segment import Segment
 
 from ..core.bounds import Bounds
+from ..core.versioned import Versioned, changes
 
 
-class Buffer:
+class Buffer(Versioned):
     """
     A 2D sparse grid of rich.Segment objects.
     """
@@ -12,6 +13,7 @@ class Buffer:
         """
         Initialize the buffer as a sparse structure.
         """
+        super().__init__()
         self._data = {}  # {y: {x: segment}}
         self.bounds = Bounds()
         self._size = 0
@@ -29,6 +31,7 @@ class Buffer:
         x, y = coords
         return self._data.get(y, {}).get(x)
 
+    @changes
     def __setitem__(self, coords, segment):
         """
         Set a segment at the given coordinates.
@@ -40,6 +43,7 @@ class Buffer:
         x, y = coords
         self.set(x, y, segment)
 
+    @changes
     def __iadd__(self, other) -> "Buffer":
         """
         Merge another buffer into this one.
@@ -86,6 +90,7 @@ class Buffer:
                     result.set(x, y, row[x])
         return result
 
+    @changes
     def __iand__(self, bounds: Bounds) -> "Buffer":
         """
         Crop the buffer to the given bounds.
@@ -109,6 +114,7 @@ class Buffer:
                     delta.set(x, y, seg)
         return delta
 
+    @changes
     def __isub__(self, other: "Buffer") -> "Buffer":
         """
         Remove from self any cells that are identical in other.
@@ -131,6 +137,7 @@ class Buffer:
         """
         return self._size
 
+    @changes
     def set(self, x, y, segment):
         """
         Set cell(s) starting at given coordinates with a Segment.
@@ -179,6 +186,7 @@ class Buffer:
 
         return new_buffer
 
+    @changes
     def recalculate(self, size: bool = True, bounds: bool = True):
         """
         Recalculate the size and bounds
