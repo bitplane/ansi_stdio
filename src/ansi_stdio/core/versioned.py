@@ -22,6 +22,12 @@ class Versioned:
     def version(self):
         return self._version
 
+    def __hash__(self) -> int:
+        """
+        Versionable objects are cacheable ones
+        """
+        return hash((id(self), self.version))
+
 
 def changes(method):
     """
@@ -40,7 +46,7 @@ def changes(method):
 
 def waits(method):
     """
-    Decorate methods with this if they need to wait for changes to m
+    Decorate methods with this if they need to wait for changes
     """
 
     @wraps(method)
