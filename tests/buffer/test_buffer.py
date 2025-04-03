@@ -2,7 +2,7 @@ import pytest
 from rich.segment import Segment
 
 from ansi_stdio.buffer.buffer import Buffer
-from ansi_stdio.core.bounds import Bounds
+from ansi_stdio.core.box import Box
 
 
 def test_create_buffer():
@@ -32,17 +32,17 @@ def test_get_segment():
     assert buffer[4, 0].text == "o"
 
 
-def test_bounds():
+def test_box():
     buffer = Buffer()
     buffer[-1, 5] = Segment("hello")
 
-    assert buffer.bounds.min_x == -1
-    assert buffer.bounds.min_y == 5
-    assert buffer.bounds.max_x == 4
-    assert buffer.bounds.max_y == 6
+    assert buffer.box.min_x == -1
+    assert buffer.box.min_y == 5
+    assert buffer.box.max_x == 4
+    assert buffer.box.max_y == 6
 
-    assert buffer.bounds.width == 5
-    assert buffer.bounds.height == 1
+    assert buffer.box.width == 5
+    assert buffer.box.height == 1
 
 
 def test_set_and_get_single_char():
@@ -51,7 +51,7 @@ def test_set_and_get_single_char():
 
     assert buf[2, 3].text == "X"
     assert buf[1, 3] is None
-    assert buf.bounds.contains(2, 3)
+    assert buf.box.contains(2, 3)
     assert len(buf) == 1
 
 
@@ -98,7 +98,7 @@ def test_crop_and():
     buf[1, 1] = Segment("A")
     buf[5, 5] = Segment("B")
 
-    cropped = buf & Bounds(0, 0, 3, 3)
+    cropped = buf & Box(0, 0, 3, 3)
     assert cropped[1, 1].text == "A"
     assert cropped[5, 5] is None
     assert len(cropped) == 1
@@ -109,7 +109,7 @@ def test_crop_iand_inplace():
     buf[1, 1] = Segment("A")
     buf[5, 5] = Segment("B")
 
-    buf &= Bounds(0, 0, 3, 3)
+    buf &= Box(0, 0, 3, 3)
     assert buf[1, 1].text == "A"
     assert buf[5, 5] is None
     assert len(buf) == 1
@@ -127,7 +127,7 @@ def test_copy_isolated():
     assert c[1, 0].text == "Q"
 
 
-def test_recalculate_size_and_bounds():
+def test_recalculate_size_and_box():
     buf = Buffer()
     buf[3, 4] = Segment("X")
     buf[1, 2] = Segment("Y")
@@ -137,8 +137,8 @@ def test_recalculate_size_and_bounds():
 
     buf.recalculate()
 
-    assert buf.bounds.contains(1, 2)
-    assert buf.bounds.contains(20, 10)
+    assert buf.box.contains(1, 2)
+    assert buf.box.contains(20, 10)
     assert len(buf) == 1 + 1 + 3  # 2 originals + 3 new chars
 
 

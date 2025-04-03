@@ -1,35 +1,35 @@
 import pytest
 
-from ansi_stdio.core.bounds import Bounds
+from ansi_stdio.core.box import Box
 
 
-def test_create_bounds():
-    bounds = Bounds()
-    assert bounds is not None
+def test_create_box():
+    box = Box()
+    assert box is not None
 
 
-def test_bounds_falsey():
-    bounds = Bounds()
-    assert not bounds
+def test_box_falsey():
+    box = Box()
+    assert not box
 
 
-def test_bounds_truthy():
-    bounds = Bounds(1, 1, 2, 2)
-    assert bounds
+def test_box_truthy():
+    box = Box(1, 1, 2, 2)
+    assert box
 
 
 def test_width():
-    bounds = Bounds(-10, 10, 20, 20)
-    assert bounds.width == 30
+    box = Box(-10, 10, 20, 20)
+    assert box.width == 30
 
 
 def test_height():
-    bounds = Bounds(-10, 10, 20, 20)
-    assert bounds.height == 10
+    box = Box(-10, 10, 20, 20)
+    assert box.height == 10
 
 
 def test_point_containment():
-    b = Bounds(0, 0, 10, 10)
+    b = Box(0, 0, 10, 10)
 
     assert (5, 5) in b
     assert (0, 0) in b
@@ -40,7 +40,7 @@ def test_point_containment():
 
 
 def test_axis_contains():
-    b = Bounds(1, 2, 5, 6)
+    b = Box(1, 2, 5, 6)
 
     assert b.contains(x=1)
     assert b.contains(x=4)
@@ -58,7 +58,7 @@ def test_axis_contains():
 
 
 def test_partial_tuple_containment():
-    b = Bounds(10, 20, 50, 60)
+    b = Box(10, 20, 50, 60)
 
     assert (None, 25) in b  # y only
     assert (25, None) in b  # x only
@@ -67,19 +67,19 @@ def test_partial_tuple_containment():
     assert (None, None) in b  # vacuously contained
 
 
-def test_bounds_in_bounds():
-    outer = Bounds(0, 0, 10, 10)
-    inner = Bounds(2, 2, 5, 5)
+def test_box_in_box():
+    outer = Box(0, 0, 10, 10)
+    inner = Box(2, 2, 5, 5)
 
     assert inner in outer
     assert outer in outer
     assert outer not in inner
 
-    assert Bounds() in outer  # empty bounds subset of everything
+    assert Box() in outer  # empty box subset of everything
 
 
-def test_bounds_update_and_len():
-    b = Bounds()
+def test_box_update_and_len():
+    b = Box()
     assert not b
     assert len(b) == 0
 
@@ -90,9 +90,9 @@ def test_bounds_update_and_len():
     assert b.height == 1
 
 
-def test_bounds_addition_union():
-    a = Bounds(0, 0, 5, 5)
-    b = Bounds(4, 4, 10, 10)
+def test_box_addition_union():
+    a = Box(0, 0, 5, 5)
+    b = Box(4, 4, 10, 10)
     result = a + b
 
     assert result.min_x == 0
@@ -102,9 +102,9 @@ def test_bounds_addition_union():
     assert (9, 9) in result
 
 
-def test_bounds_intersection():
-    a = Bounds(0, 0, 5, 5)
-    b = Bounds(3, 3, 10, 10)
+def test_box_intersection():
+    a = Box(0, 0, 5, 5)
+    b = Box(3, 3, 10, 10)
     result = a & b
 
     assert result.min_x == 3
@@ -114,22 +114,22 @@ def test_bounds_intersection():
     assert (4, 4) in result
     assert (2, 2) not in result
 
-    empty = a & Bounds(6, 6, 7, 7)
+    empty = a & Box(6, 6, 7, 7)
     assert not empty
     assert len(empty) == 0
 
 
 def test_iand_in_place():
-    b = Bounds(0, 0, 10, 10)
-    b &= Bounds(3, 3, 7, 7)
+    b = Box(0, 0, 10, 10)
+    b &= Box(3, 3, 7, 7)
     assert b.min_x == 3
     assert b.min_y == 3
     assert b.max_x == 7
     assert b.max_y == 7
 
 
-def test_bounds_reset():
-    b = Bounds(1, 2, 3, 4)
+def test_box_reset():
+    b = Box(1, 2, 3, 4)
     b.reset()
     assert b.min_x == 0
     assert b.min_y == 0
@@ -139,9 +139,9 @@ def test_bounds_reset():
     assert len(b) == 0
 
 
-def test_bounds_add_with_empty():
-    a = Bounds(1, 1, 3, 3)
-    b = Bounds()  # empty
+def test_box_add_with_empty():
+    a = Box(1, 1, 3, 3)
+    b = Box()  # empty
 
     result1 = a + b
     result2 = b + a
@@ -153,9 +153,9 @@ def test_bounds_add_with_empty():
     assert result2.max_y == 3
 
 
-def test_bounds_and_with_empty():
-    a = Bounds(0, 0, 5, 5)
-    b = Bounds()  # empty
+def test_box_and_with_empty():
+    a = Box(0, 0, 5, 5)
+    b = Box()  # empty
 
     result1 = a & b
     result2 = b & a
@@ -166,34 +166,34 @@ def test_bounds_and_with_empty():
     assert len(result2) == 0
 
 
-def test_bounds_contains_bounds_attribute():
+def test_box_contains_box_attribute():
     class Dummy:
-        def __init__(self, bounds):
-            self.bounds = bounds
+        def __init__(self, box):
+            self.box = box
 
-    outer = Bounds(0, 0, 10, 10)
-    inner = Bounds(2, 2, 4, 4)
+    outer = Box(0, 0, 10, 10)
+    inner = Box(2, 2, 4, 4)
     wrapper = Dummy(inner)
 
     assert wrapper in outer
 
-    outer2 = Bounds(0, 0, 3, 3)
-    wrapper2 = Dummy(Bounds(2, 2, 6, 6))
+    outer2 = Box(0, 0, 3, 3)
+    wrapper2 = Dummy(Box(2, 2, 6, 6))
 
     assert wrapper2 not in outer2
 
 
-def test_bounds_contains_invalid_type():
-    b = Bounds(0, 0, 5, 5)
+def test_box_contains_invalid_type():
+    b = Box(0, 0, 5, 5)
 
     with pytest.raises(TypeError):
-        _ = "not a bounds" in b
+        _ = "not a box" in b
 
 
-def test_bounds_equality():
-    a = Bounds(1, 2, 5, 6)
-    b = Bounds(1, 2, 5, 6)
-    c = Bounds(0, 0, 5, 6)
+def test_box_equality():
+    a = Box(1, 2, 5, 6)
+    b = Box(1, 2, 5, 6)
+    c = Box(0, 0, 5, 6)
 
     assert a == b
     assert a != c

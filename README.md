@@ -25,6 +25,20 @@ time etc.
 Buffers are sparse grids of `rich` characters. They track their own size and
 can be merged (`+=` and `+`), queried/set (slice notation) and copied.
 
+### Object design
+
+A few basic concepts
+
+* Box - a 2d box, used for bounding things
+* Saved - a seriali
+
+* There's a timeline.
+* We have values
+
+* Should "Animation" be a buffer?
+
+* Do we need a
+
 ## Overall plan
 
 * Build a custom video format with keyframes and delta frames/buffers. This can

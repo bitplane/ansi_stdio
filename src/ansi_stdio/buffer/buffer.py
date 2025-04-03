@@ -1,6 +1,6 @@
 from rich.segment import Segment
 
-from ..core.bounds import Bounds
+from ..core.box import Box
 from ..core.versioned import Versioned, changes
 
 
@@ -15,7 +15,7 @@ class Buffer(Versioned):
         """
         super().__init__()
         self._data = {}  # {y: {x: segment}}
-        self.bounds = Bounds()
+        self.box = Box()
         self._size = 0
 
     def __getitem__(self, coords):
@@ -51,8 +51,8 @@ class Buffer(Versioned):
         if not isinstance(other, Buffer):
             raise TypeError(f"Cannot merge {type(other)} with Buffer")
 
-        # Update bounds in one operation
-        self.bounds += other.bounds
+        # Update box in one operation
+        self.box += other.box
 
         # Merge the data from the other buffer
         for y, row in other._data.items():
@@ -63,7 +63,7 @@ class Buffer(Versioned):
                 # Update existing row
                 self._data[y].update(row)
 
-        self.recalculate(bounds=False)
+        self.recalculate(box=False)
 
         return self
 
@@ -75,30 +75,30 @@ class Buffer(Versioned):
         result += other
         return result
 
-    def __and__(self, bounds: Bounds) -> "Buffer":
+    def __and__(self, box: Box) -> "Buffer":
         """
-        Crop the buffer to the given bounds.
+        Crop the buffer to the given box.
         Returns a newly allocated buffer.
         """
         result = Buffer()
-        for y in range(bounds.min_y, bounds.max_y):
+        for y in range(box.min_y, box.max_y):
             row = self._data.get(y)
             if not row:
                 continue
-            for x in range(bounds.min_x, bounds.max_x):
+            for x in range(box.min_x, box.max_x):
                 if x in row:
                     result.set(x, y, row[x])
         return result
 
     @changes
-    def __iand__(self, bounds: Bounds) -> "Buffer":
+    def __iand__(self, box: Box) -> "Buffer":
         """
-        Crop the buffer to the given bounds.
+        Crop the buffer to the given box.
         This modifies the buffer in place.
         """
-        self._data = (self & bounds)._data
-        self.bounds = bounds
-        self.recalculate(bounds=False)
+        self._data = (self & box)._data
+        self.box = box
+        self.recalculate(box=False)
 
         return self
 
@@ -149,10 +149,10 @@ class Buffer(Versioned):
             segment: Rich Segment object to place at this position
         """
 
-        self.bounds.update(x, y)
+        self.box.update(x, y)
         txtlen = len(segment.text)
         if txtlen > 1:
-            self.bounds.update(x - 1 + txtlen, y)
+            self.box.update(x - 1 + txtlen, y)
 
         # Ensure y entry exists before loop
         if not self._data.get(y):
@@ -175,9 +175,9 @@ class Buffer(Versioned):
         """
         new_buffer = Buffer()
 
-        # Copy the bounds
-        new_buffer.bounds = Bounds(
-            self.bounds.min_x, self.bounds.min_y, self.bounds.max_x, self.bounds.max_y
+        # Copy the box
+        new_buffer.box = Box(
+            self.box.min_x, self.box.min_y, self.box.max_x, self.box.max_y
         )
 
         # Copy the data structure
@@ -187,15 +187,15 @@ class Buffer(Versioned):
         return new_buffer
 
     @changes
-    def recalculate(self, size: bool = True, bounds: bool = True):
+    def recalculate(self, size: bool = True, box: bool = True):
         """
-        Recalculate the size and bounds
+        Recalculate the size and box
         """
         if size:
             self._size = sum(len(row) for row in self._data.values())
 
-        if bounds:
-            self.bounds.reset()
+        if box:
+            self.box.reset()
             for y, row in self._data.items():
                 for x in row:
-                    self.bounds.update(x, y)
+                    self.box.update(x, y)

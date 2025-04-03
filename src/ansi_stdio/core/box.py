@@ -1,11 +1,11 @@
-class Bounds:
+class Box:
     """
     Represents a rectangular area on the screen.
     """
 
     def __init__(self, min_x=0, min_y=0, max_x=0, max_y=0):
         """
-        Initialize the bounds with the given coordinates.
+        Initialize the box with the given coordinates.
         """
         self.min_x = min_x
         self.min_y = min_y
@@ -15,7 +15,7 @@ class Bounds:
 
     def reset(self):
         """
-        Reset the bounds to the origin.
+        Reset the box to the origin.
         """
         self.min_x = 0
         self.min_y = 0
@@ -24,36 +24,36 @@ class Bounds:
 
     def __add__(self, other):
         """
-        Combine two bounds into a new bounds that encompasses both.
+        Combine two boxes into a new box that encompasses both.
         """
         if not self:
             return other
         if not other:
             return self
-        return Bounds(
+        return Box(
             min_x=min(self.min_x, other.min_x),
             min_y=min(self.min_y, other.min_y),
             max_x=max(self.max_x, other.max_x),
             max_y=max(self.max_y, other.max_y),
         )
 
-    def __and__(self, other: "Bounds") -> "Bounds":
+    def __and__(self, other: "Box") -> "Box":
         """
-        Intersect two bounds to find the overlapping area.
+        Intersect two box to find the overlapping area.
         """
         if not self or not other:
-            return Bounds()
+            return Box()
 
-        return Bounds(
+        return Box(
             max(self.min_x, other.min_x),
             max(self.min_y, other.min_y),
             min(self.max_x, other.max_x),
             min(self.max_y, other.max_y),
         )
 
-    def __iand__(self, other: "Bounds") -> "Bounds":
+    def __iand__(self, other: "Box") -> "Box":
         """
-        Crop the bounds to the overlapping area.
+        Crop the box to the overlapping area.
         """
         result = self & other
         self.min_x, self.min_y = result.min_x, result.min_y
@@ -62,24 +62,24 @@ class Bounds:
 
     def __bool__(self):
         """
-        True if the bounds have a non-zero area.
+        True if the box has a non-zero area.
         """
         return (self.min_x != self.max_x) or (self.min_y != self.max_y)
 
     def __len__(self):
         """
-        Return the area of the bounds.
+        Return the area of the box.
         """
         return self.width * self.height
 
     def __contains__(self, item):
         """
-        Check if the given item is contained within the bounds.
+        Check if the given item is contained within the box.
         """
         if isinstance(item, tuple) and len(item) == 2:
             return self.contains(x=item[0], y=item[1])
 
-        if isinstance(item, Bounds):
+        if isinstance(item, Box):
             if not item:
                 # The empty set is a subset of everything
                 return True
@@ -90,13 +90,13 @@ class Bounds:
                 and item.max_y <= self.max_y
             )
 
-        if hasattr(item, "bounds"):
-            return item.bounds in self
+        if hasattr(item, "box"):
+            return item.box in self
 
         raise TypeError(f"Cannot check containment for {type(item)}")
 
     def __eq__(self, other):
-        if not isinstance(other, Bounds):
+        if not isinstance(other, Box):
             return NotImplemented
         return (
             self.min_x == other.min_x
@@ -107,7 +107,7 @@ class Bounds:
 
     def update(self, x, y):
         """
-        Update the bounds to include the given coordinates.
+        Update the box to include the given coordinates.
         """
         if not self:
             self.min_x, self.max_x = x, x + 1
@@ -120,7 +120,7 @@ class Bounds:
 
     def contains(self, x=None, y=None):
         """
-        Check if the given coordinates are within the bounds.
+        Check if the given coordinates are within the box.
         If x or y is None, it will not be checked.
         """
         if x is not None and not (self.min_x <= x < self.max_x):
