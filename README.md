@@ -3,7 +3,7 @@
 Terminal text composition and animation library.
 
 ```sh
-$ uv ansi_stdio
+$ uvx ansi_stdio
 ```
 
 ## Tools
@@ -16,7 +16,8 @@ $ uv ansi_stdio
 
 The thing is a scene graph made of Actor nodes. Each node has a clock and when
 rendered, can redirect calls. Haven't decided how child relationships and
-recursion will work yet, so keeping this open.
+recursion will work yet, so keeping this open. Probably won't call them actors
+either.
 
 Clocks are chained timers that can be paused and implement time however they
 like. `clock.wall` gives you the system time. `Clock.time` gives the current
@@ -27,17 +28,19 @@ can be merged (`+=` and `+`), queried/set (slice notation) and copied.
 
 ### Object design
 
-A few basic concepts
+So far we have:
 
-* Box - a 2d box, used for bounding things
-* Saved - a seriali
+* 🔢 Versioned - objects that are versioned have a version number that gets
+  updated when they are changed.
+* 📦 Box - a 2d box, used for bounding things.
+* ⏲️ Clock - the workhorse of animation.
 
-* There's a timeline.
-* We have values
+Still not figured out:
 
+* 💾 Saved - a serializable class.
+* 🎞️ The main actor class - is it a View?
+* How buffers, views and time work together with caching.
 * Should "Animation" be a buffer?
-
-* Do we need a
 
 ## Overall plan
 
@@ -68,4 +71,3 @@ A few basic concepts
   info (callbacks that look for cursor movements and/or screen resets).
 * Figure out the serialization strategy for objects.
 * Actually start drawing stuff.
-
