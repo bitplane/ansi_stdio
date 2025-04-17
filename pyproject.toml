@@ -37,6 +37,7 @@ dev = [
     "pytest",
     "coverage",
     "pytest-cov",
+    "pydoc-markdown",
     "build",
     "twine"
 ]
