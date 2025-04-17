@@ -7,7 +7,8 @@ authors = [
 ]
 dependencies = [
     "rich",
-    "pyte"
+    "pyte",
+    "matplotlib"
 ]
 
 [project.optional-dependencies]
@@ -16,11 +17,14 @@ dev = [
     "pre-commit",
     "pytest",
     "coverage",
-    "pytest-cov"
+    "pytest-cov",
+    "build",
+    "twine"
 ]
 
 [project.scripts]
 ansi-quantize = "ansi_stdio.cli.quantize:main"
+ansi-fonts = "ansi_stdio.cli.fonts:main"
 
 [build-system]
 build-backend = "flit_core.buildapi"
