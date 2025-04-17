@@ -11,6 +11,7 @@ $ uvx ansi_stdio
 * `ansi-quantize` - terminal filter to help you strip out log dump noise from
   asciinema recordings. Currently doesn't do a very good job of it, due to
   not having char-level diffs.
+* `ansi-fonts` - lists available monospace fonts on the system.
 
 ## Design
 
@@ -64,10 +65,10 @@ Still not figured out:
 
 ## Next Steps
 
+* Finish the Saved class, figure out how it relates to Versioned.
 * Figure out animation buffers, how they map to buffers, accumulate and can
   be rendered.
 * Implement a recorder using the above.
 * Figure out how to convert ANSI text into animations when it has no timing
   info (callbacks that look for cursor movements and/or screen resets).
-* Figure out the serialization strategy for objects.
-* Actually start drawing stuff.
+* Start work on the UI
