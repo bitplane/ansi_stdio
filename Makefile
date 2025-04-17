@@ -29,7 +29,7 @@ update-pre-commit: scripts/update-pre-commit.sh  ## autoupdate pre-commit
 	scripts/update-pre-commit.sh
 
 dist: scripts/dist.sh ## build the distributable files
-	scripts/dist.sh $(PROJECT_NAME)
+	scripts/dist.sh
 
 release: scripts/release.sh ## publish to pypi
 	scripts/release.sh $(PROJECT_NAME)
