@@ -5,11 +5,30 @@ version = "0.0.2"
 authors = [
     { name = "Gareth Davidson", email = "gaz@bitplane.net" }
 ]
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: Public Domain",  # WTFPL
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: Terminals"
+]
 dependencies = [
     "rich",
     "pyte",
     "matplotlib"
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/bitplane/ansi_stdio"
+"Bug Tracker" = "https://github.com/bitplane/ansi_stdio/issues"
+"Source Code" = "https://github.com/bitplane/ansi_stdio"
 
 [project.optional-dependencies]
 dev = [

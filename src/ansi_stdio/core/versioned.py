@@ -20,6 +20,9 @@ class Versioned:
 
     @property
     def version(self):
+        """
+        Return the version number of this object.
+        """
         return self._version
 
     def __hash__(self) -> int:

@@ -33,6 +33,8 @@ class Saved:
     A class that can be serialized and deserialized.
     """
 
+    params: Params = None
+
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if cls.__name__ in CLASSES:
@@ -59,21 +61,36 @@ class Saved:
         # Set params to the __init__ signature
         cls.params = CLASSES[cls.__name__].params
 
-    # def __json__(self) -> dict:
-    #     """
-    #     Convert the instance to a dictionary.
-    #     """
+    def arguments(self) -> dict[str, Any]:
+        """
+        Get the arguments needed to construct this object.
+        Filters out any arguments that are the same as the default value.
+        """
+        out = {}
+        for name, param in self.params.items():
+            value = getattr(self, name)
+            if value != param.default:
+                out[name] = value
+        return out
 
-    #     # get kargs from __init__ signature
-    #     # and filter out any that start with "_"
-    #     kwargs = self.__init__.__code__.
+    def save(self) -> dict:
+        """
+        Convert the instance to a dictionary.
+        """
+        return {"class": self.__class__.__name__} | {
+            k: v.save() if hasattr(v, "save") else v
+            for k, v in self.arguments().items()
+        }
 
-    #     if self.__class__ in (list, tuple, dict, set):
+    @classmethod
+    def load(data: dict[str, Any]) -> "Saved":
+        cls = CLASSES[data["class"]].type
+        args = {
+            k: Saved.load(v) if Saved.is_loadable(v) else v
+            for k, v in data["args"].items()
+        }
+        return cls(**args)
 
-    # @classmethod
-    # def from_dict(cls, data: dict) -> 'Saved':
-    #     typename = data.pop("type")
-    #     return TYPES[typename](**{
-    #         k: Saved._maybe_recurse(v)
-    #         for k, v in data.items()
-    #     })
+    @staticmethod
+    def is_loadable(val: Any) -> bool:
+        return isinstance(val, dict) and "class" in val and val["class"] in CLASSES
